@@ -1,0 +1,29 @@
+[Unit]
+Description=Network UPS Tools - power device monitor and shutdown controller
+After=local-fs.target network.target nut-server.service
+Wants=nut-srv.service
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+EnvironmentFile=-/var/lib/orches/repo/nut/nut.conf
+SyslogIdentifier=%N
+Environment=SOPS_AGE_KEY_FILE=/root/.config/sops/age/keys.txt
+ExecStartPre=/bin/sh -c 'test -f ${SOPS_AGE_KEY_FILE} || exit 1'
+ExecStartPre=/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /var/lib/orches/repo/nut/upsmon.sops.conf "cp {} /etc/ups/upsmon.conf"
+ExecStartPre=/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /var/lib/orches/repo/nut/secrets.sops.env "cp {} /root/.config/sops/nut.env"
+ExecStartPre=/bin/chown nut:nut /etc/ups/upsmon.conf
+ExecStartPre=/bin/cp /var/lib/orches/repo/nut/upssched.conf /etc/ups/upssched.conf
+ExecStartPre=/bin/chown nut:nut /etc/ups/upssched.conf
+ExecStartPre=/bin/cp /var/lib/orches/repo/nut/upssched.sh /etc/ups/upssched.sh
+ExecStartPre=/bin/chown nut:nut /etc/ups/upssched.sh
+ExecStartPre=/bin/chmod +x /etc/ups/upssched.sh
+ExecStart=/sbin/upsmon -F
+ExecReload=/sbin/upsmon -c reload
+PIDFile=/run/nut/upsmon.pid
+Restart=on-failure
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=default.target

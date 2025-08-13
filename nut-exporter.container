@@ -1,0 +1,23 @@
+[Unit]
+Description=NUT provides a common protocol to monitor your UPS.
+After=network-online.target nut-upsd.service
+Requires=nut-srv.service
+Wants=network-online.target
+
+[Service]
+TimeoutStartSec=900
+Restart=always
+RestartSec=3
+Environment=SOPS_AGE_KEY_FILE=/root/.config/sops/age/keys.txt
+ExecStartPre=/bin/sh -c 'test -f "${SOPS_AGE_KEY_FILE}" || exit 1'
+ExecStartPre=/usr/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /var/lib/orches/repo/nut-exporter/secrets.sops.env "cp {} /root/.config/sops/nut-exporter.env"
+
+[Container]
+ContainerName=nut-exporter
+Image=ghcr.io/druggeri/nut_exporter:3.2.1
+EnvironmentFile=/var/lib/orches/repo/nut-exporter/.env
+EnvironmentFile=/root/.config/sops/nut-exporter.env
+PublishPort=9199:9199
+
+[Install]
+WantedBy=default.target

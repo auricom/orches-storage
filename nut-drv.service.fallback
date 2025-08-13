@@ -1,0 +1,11 @@
+[Unit]
+Description=Network UPS Tools - driver
+
+[Service]
+ExecStart=/sbin/upsdrvctl start
+Restart=on-failure
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=default.target

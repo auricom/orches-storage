@@ -6,11 +6,12 @@ This repository provides a rootful orches definition for [cayo-storage](https://
 
 ## Quick Start
 
-### 1. Create required directories
-```bash
-sudo mkdir -p /var/lib/orches /etc/containers/systemd
-```
+### 1. Deploy age private key
 
+```bash
+sudo mkdir -p /root/.config/sops/age
+sudo nano /root/.config/sops/age/keys.txt
+```
 ### 2. Initialize orches with this repository
 ```bash
 sudo podman run --rm -it --pid=host --pull=newer \
@@ -22,7 +23,17 @@ sudo podman run --rm -it --pid=host --pull=newer \
   https://github.com/auricom/orches-storage.git
 ```
 
-### 3. Verify orches and node-exporter are running
+### 3. Enable services unsupported by orches
+
+```bash
+sudo ln -s /var/lib/orches/repo/nut-drv.service.fallback /etc/systemd/system/nut-drv.service
+sudo ln -s /var/lib/orches/repo/nut-mon.service.fallback /etc/systemd/system/nut-mon.service
+sudo ln -s /var/lib/orches/repo/nut-srv.service.fallback /etc/systemd/system/nut-srv.service
+sudo ln -s /var/lib/orches/repo/nas-photo-sorter.timer.fallback /etc/systemd/system/nas-photo-sorter.timer
+systemctl daemon-reload
+```
+
+### 5. Verify orches and node-exporter are running
 ```bash
 systemctl status orches
 systemctl status node-exporter
