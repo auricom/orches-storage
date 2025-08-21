@@ -1,0 +1,28 @@
+[Unit]
+Description=Hard Drive S.M.A.R.T Monitoring, Historical Trends & Real World Failure Thresholds
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+TimeoutStartSec=900
+Restart=always
+RestartSec=3
+Environment=SOPS_AGE_KEY_FILE=/root/.config/sops/age/keys.txt
+ExecStartPre=/bin/sh -c 'test -f "${SOPS_AGE_KEY_FILE}" || exit 1'
+ExecStartPre=/usr/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /var/lib/orches/repo/scrutiny-collector/secrets.sops.env "cp {} /root/.config/sops/scrutiny-collector.env"
+
+[Container]
+ContainerName=scrutiny-collector
+EnvironmentFile=/root/.config/sops/scrutiny-collector.env
+Image=ghcr.io/analogj/scrutiny:master-collector@sha256:c68c3dff1d897fce90eb28743b13d5dfa72c6a8bafb3671117fed971683ae535
+PodmanArgs=--privileged
+PodmanArgs=--cap-add=SYS_ADMIN
+PodmanArgs=--cap-add=SYS_RAWIO
+Volume=/run/udev:/run/udev:ro,rslave
+Volume=/dev/nvme0:/dev/nvme0:ro,rslave
+Volume=/dev/nvme0:/dev/nvme1:ro,rslave
+Volume=/dev/nvme0:/dev/nvme2:ro,rslave
+SecurityLabelType=container_runtime_t
+
+[Install]
+WantedBy=default.target
