@@ -14,7 +14,7 @@ ExecStartPre=/usr/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /
 [Container]
 ContainerName=scrutiny-collector
 EnvironmentFile=/root/.config/sops/scrutiny-collector.env
-Image=ghcr.io/analogj/scrutiny:master-collector@sha256:c68c3dff1d897fce90eb28743b13d5dfa72c6a8bafb3671117fed971683ae535
+Image=ghcr.io/analogj/scrutiny:master-collector@sha256:de04d8229c3977a437edd4aca96f3413464f5dbbef910cc64067cfdc5e330624
 PodmanArgs=--privileged
 PodmanArgs=--cap-add=SYS_ADMIN
 PodmanArgs=--cap-add=SYS_RAWIO
