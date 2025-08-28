@@ -1,0 +1,64 @@
+[Unit]
+Description=NUT provides a common protocol to monitor your UPS.
+After=network-online.target
+Wants=network-online.target
+# Required for systemctl inside the container
+RequiresMountsFor=/bin/systemctl
+RequiresMountsFor=/run/systemd/system
+RequiresMountsFor=/var/run/dbus/system_bus_socket
+RequiresMountsFor=/sys/fs/cgroup
+
+[Service]
+TimeoutStartSec=900
+Restart=always
+RestartSec=3
+Environment=SOPS_AGE_KEY_FILE=/root/.config/sops/age/keys.txt
+ExecStartPre=/bin/sh -c 'test -f "${SOPS_AGE_KEY_FILE}" || exit 1'
+ExecStartPre=/usr/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /var/lib/orches/repo/nut/secrets.sops.env "cp {} /root/.config/sops/nut.env ; chown 100:101 /root/.config/sops/nut.env ; chmod 0440 /root/.config/sops/nut.env"
+ExecStartPre=/usr/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /var/lib/orches/repo/nut/upsmon.sops.conf "cp {} /root/.config/sops/upsmon.conf ; chown 100:101 /root/.config/sops/upsmon.conf ; chmod 0440 /root/.config/sops/upsmon.conf"
+ExecStartPre=/usr/sbin/sops --config /var/lib/orches/repo/.sops.yaml exec-file /var/lib/orches/repo/nut/upsd.sops.users "cp {} /root/.config/sops/upsd.users ; chown 100:101 /root/.config/sops/upsd.users ; chmod 0440 /root/.config/sops/upsd.users"
+ExecStartPre=/bin/cp /var/lib/orches/repo/nut/nut.conf /root/.config/sops/nut.conf
+ExecStartPre=/bin/chown 100:101 /root/.config/sops/nut.conf
+ExecStartPre=/bin/chmod 0440 /root/.config/sops/nut.conf
+ExecStartPre=/bin/cp /var/lib/orches/repo/nut/ups.conf /root/.config/sops/ups.conf
+ExecStartPre=/bin/chown 100:101 /root/.config/sops/ups.conf
+ExecStartPre=/bin/chmod 0440 /root/.config/sops/ups.conf
+ExecStartPre=/bin/cp /var/lib/orches/repo/nut/upsd.conf /root/.config/sops/upsd.conf
+ExecStartPre=/bin/chown 100:101 /root/.config/sops/upsd.conf
+ExecStartPre=/bin/chmod 0440 /root/.config/sops/upsd.conf
+ExecStartPre=/bin/cp /var/lib/orches/repo/nut/upssched.conf /root/.config/sops/upssched.conf
+ExecStartPre=/bin/chown 100:101 /root/.config/sops/upssched.conf
+ExecStartPre=/bin/chmod 0440 /root/.config/sops/upssched.conf
+ExecStartPre=/bin/cp /var/lib/orches/repo/nut/upssched.sh /root/.config/sops/upssched.sh
+ExecStartPre=/bin/chown 100:101 /root/.config/sops/upssched.sh
+ExecStartPre=/bin/chmod 0440 /root/.config/sops/upssched.sh
+# Pass through host systemd and cgroup mounts
+ExecStartPre=/bin/sh -c 'mkdir -p %t/%N.ctr-id'
+
+[Container]
+ContainerName=nut
+Image=docker.io/gpdm/nut-upsd:release-0.8.3
+EnvironmentFile=/root/.config/sops/nut.env
+PublishPort=3493:3493
+PodmanArgs=--privileged
+PodmanArgs=--cap-add=SYS_ADMIN
+PodmanArgs=--cap-add=SYS_RAWIO
+Entrypoint=sleep
+Exec=infinity
+Volume=/run/udev:/run/udev:ro,rslave
+Volume=/dev/bus/usb:/dev/bus/usb:ro,rslave
+Volume=/root/.config/sops/nut.conf:/etc/nut/nut.conf:Z
+Volume=/root/.config/sops/ups.conf:/etc/nut/ups.conf:Z
+Volume=/root/.config/sops/upsd.conf:/etc/nut/upsd.conf:Z
+Volume=/root/.config/sops/upsd.users:/etc/nut/upsd.users:Z
+Volume=/root/.config/sops/upsmon.conf:/etc/nut/upsmon.conf:Z
+Volume=/root/.config/sops/upssched.conf:/etc/nut/upssched.conf:Z
+Volume=/root/.config/sops/upssched.sh:/upssched.sh:Z
+# systemd/cgroup access
+Volume=/bin/systemctl:/bin/systemctl:ro
+Volume=/run/systemd/system:/run/systemd/system:ro
+Volume=/var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
+Volume=/sys/fs/cgroup:/sys/fs/cgroup:ro
+
+[Install]
+WantedBy=default.target

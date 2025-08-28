@@ -1,7 +1,7 @@
 [Unit]
 Description=NUT provides a common protocol to monitor your UPS.
 After=network-online.target nut-upsd.service
-Requires=nut-srv.service
+Requires=nut.service
 Wants=network-online.target
 
 [Service]

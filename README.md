@@ -23,17 +23,7 @@ sudo podman run --rm -it --pid=host --pull=newer \
   https://github.com/auricom/orches-storage.git
 ```
 
-### 3. Enable services unsupported by orches
-
-```bash
-sudo ln -s /var/lib/orches/repo/nut-drv.service.fallback /etc/systemd/system/nut-drv.service
-sudo ln -s /var/lib/orches/repo/nut-mon.service.fallback /etc/systemd/system/nut-mon.service
-sudo ln -s /var/lib/orches/repo/nut-srv.service.fallback /etc/systemd/system/nut-srv.service
-sudo ln -s /var/lib/orches/repo/nas-photo-sorter.timer.fallback /etc/systemd/system/nas-photo-sorter.timer
-systemctl daemon-reload
-```
-
-### 5. Verify orches and node-exporter are running
+### 3. Verify orches and node-exporter are running
 ```bash
 systemctl status orches
 systemctl status node-exporter
